@@ -1,0 +1,70 @@
+
+/* Responsive CSS Overrides */
+.form-card {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: #0C1E33;
+    border: 1px solid #15304A;
+    border-radius: 12px;
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.grid-amenities {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+}
+
+/* Mobile Viewport Media Query */
+@media (max-width: 640px) {
+    .page-wrapper {
+    padding: 1rem 0.85rem !important; /* Safety padding for left and right edges */
+    }
+
+    .form-card {
+    padding: 1.25rem 1rem !important; /* Inner padding for mobile card */
+    }
+
+    .grid-3,
+    .grid-2 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    }
+
+    .grid-amenities {
+    grid-template-columns: 1fr 1fr;
+    }
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #12293F;
+    padding: 0.6rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid #15304A;
+    font-size: 0.85rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: #f59e0b;
+}

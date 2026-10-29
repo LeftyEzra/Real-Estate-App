@@ -30,6 +30,7 @@ INSTALLED_APPS = [
 
     'members',
     #"debug_toolbar",
+    'django_filters',
     
 
     # Authentication

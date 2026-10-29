@@ -17,9 +17,10 @@ from django.utils.timezone import now
 # ==========================================
 # Third-Party Imports (Django REST Framework)
 # ==========================================
-from rest_framework import mixins, status
+from rest_framework import mixins, status, generics, filters
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
@@ -61,38 +62,71 @@ class PropertyCreateView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# Property List
+
+# Property Listings
 class PropertyListView(APIView):
     def get(self, request, format=None):
-        properties = Property.objects.all().select_related('state', 'city', 'owner' )#.prefetch_related('propertyimages')
+        properties = Property.objects.all().select_related('state', 'city', 'owner')
         
-        status = request.GET.get('status')
+        # Capture query parameters
+        status_param = request.GET.get('status')
         property_type = request.GET.get('property_type')
+        search_query = request.GET.get('search')
+        max_price = request.GET.get('price__lte')
+        bedrooms = request.GET.get('bedrooms')
         state = request.GET.get('state')
         city = request.GET.get('city')
 
-        if status:
-            properties = properties.filter(status=status)
+        # Status filter
+        if status_param:
+            properties = properties.filter(status__iexact=status_param)
 
-        if property_type:
-            properties = properties.filter(property_type=property_type)
+        # Property Type filter (matching choices in PropertyType)
+        if property_type and property_type.lower() != 'any type':
+            properties = properties.filter(property_type__iexact=property_type)
 
+        # Location hierarchy filters
         if state:
             properties = properties.filter(state_id=state)
-
         if city:
             properties = properties.filter(city_id=city)
 
+        # Price & Bedroom range filters
+        if max_price:
+            properties = properties.filter(price__lte=max_price)# Prices less than or equal to
 
-        serializer = PropertySerializer(properties, many=True)
+        # 5. Filter by bedrooms (Using __gte to match 1+, 2+, etc.)
+        if bedrooms:
+            try:
+                
+                properties = properties.filter(bedrooms=int(bedrooms))
+            except (ValueError, TypeError):
+                pass    
+        
+
+        # Multi-field text search
+        if search_query:
+            properties = properties.filter(
+                Q(title__icontains=search_query) |
+                Q(description__icontains=search_query) |
+                Q(address__icontains=search_query) |
+                Q(city__name__icontains=search_query) |
+                Q(state__name__icontains=search_query)
+            )
+
+        serializer = PropertySerializer(properties, many=True, context={'request': request})
         return Response(serializer.data)
 
     def post(self, request, format=None):
-        serializer = PropertySerializer(data=request.data)
+        serializer = PropertySerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 
 
        
